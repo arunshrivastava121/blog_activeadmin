@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blog-web
+  labels:
+    app: blog-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: blog-web
+  template:
+    metadata:
+      labels:
+        app: blog-web
+    spec:
+      containers:
+      - name: blog-web
+        image: arun12101997/blog_web:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: postgres-root-username
+        - name: POSTGRES_PASSWORD
+          valueFrom: 
+            secretKeyRef:
+              name: postgres-secret
+              key: postgres-root-password
+        - name: POSTGRES_URL
+          valueFrom: 
+            configMapKeyRef:
+              name: postgresdb-configmap
+              key: database_url
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgresdb1-service
+spec:
+  selector:
+    app: blog-web
+  type: LoadBalancer  
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+      nodePort: 30001
